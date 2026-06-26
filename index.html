@@ -573,9 +573,9 @@ function calculate() {
 
   if (accountSize > 0) {
     const riskPct = ((maxLoss / accountSize) * 100).toFixed(2);
-    detail += `<br><span>Risque en % du compte:</span> <strong style="color:${riskPct > 2 ? 'var(--red)' : 'var(--green)'}">${riskPct}%</strong>`;
-    if (riskPct > 2) {
-      detail += ` <span style="color:var(--red)">(⚠️ dépasse le seuil recommandé de 2%)</span>`;
+    detail += `<br><span>Risque en % du compte:</span> <strong style="color:${riskPct > 1 ? 'var(--red)' : 'var(--green)'}">${riskPct}%</strong>`;
+    if (riskPct > 1) {
+      detail += ` <span style="color:var(--red)">(⚠️ dépasse le seuil recommandé de 1%)</span>`;
     }
   }
 
