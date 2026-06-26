@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de Taille de Position — Trading Floor</title>
+<style>
+  :root {
+    --bg-primary: #0a0a0a;
+    --bg-card: #131313;
+    --border-color: #2a2a2a;
+    --green: #2ecc71;
+    --green-dim: #1e8a4c;
+    --green-bg: rgba(46, 204, 113, 0.08);
+    --text-primary: #f5f5f5;
+    --text-secondary: #9a9a9a;
+    --text-tertiary: #555;
+    --red: #e74c3c;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .logo-mark { width: 110px; height: auto; margin-bottom: 0.5rem; }
+  .logo-text { font-family: var(--font-serif); font-size: 26px; color: var(--text-primary); }
+  .logo-text em { font-style: italic; }
+  .logo-est { font-size: 12px; color: var(--text-secondary); letter-spacing: 1px; margin-top: 3px; }
+  .app-title { font-size: 15px; font-weight: 500; color: var(--green); margin-top: 1.1rem; }
+
+  /* Container */
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Devise buttons */
+  .currency-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0.25rem;
+  }
+
+  .currency-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s ease;
+  }
+  .currency-btn:hover { border-color: var(--green-dim); color: var(--text-primary); }
+  .currency-btn.active {
+    background: var(--green-bg);
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .currency-btn .flag { font-size: 16px; }
+
+  /* Fields */
+  .field { margin-bottom: 1.1rem; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 7px;
+  }
+
+  .tooltip-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--text-tertiary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    cursor: help;
+    flex-shrink: 0;
+  }
+
+  /* Select */
+  select {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239a9a9a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  select:focus { outline: none; border-color: var(--green-dim); }
+  select option { background: #1a1a1a; }
+
+  /* Number input with arrows */
+  .number-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .number-input-wrap:focus-within { border-color: var(--green-dim); }
+
+  .arrow-btn {
+    width: 36px;
+    height: 42px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .arrow-btn:hover { color: var(--green); }
+
+  .number-input-wrap input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--green);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    padding: 10px 4px;
+    font-family: var(--font-sans);
+    width: 0;
+  }
+  .number-input-wrap input:focus { outline: none; }
+  .number-input-wrap input::-webkit-inner-spin-button,
+  .number-input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* Calcul button */
+  .calc-btn {
+    width: 100%;
+    background: var(--green);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: background 0.15s ease;
+    margin-top: 0.5rem;
+    letter-spacing: 0.3px;
+  }
+  .calc-btn:hover { background: #34d479; }
+
+  /* Résultat */
+  .result-card {
+    background: #0f1a14;
+    border: 1px solid var(--green-dim);
+    border-radius: 12px;
+    padding: 1.75rem;
+    text-align: center;
+    display: none;
+  }
+  .result-card.visible { display: block; }
+
+  .result-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+  }
+
+  .result-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-unit {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-left: 6px;
+  }
+
+  .result-detail {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 1rem;
+    line-height: 1.7;
+  }
+
+  .result-detail span { color: var(--text-secondary); }
+
+  /* Erreur */
+  .error-box {
+    background: rgba(231,76,60,0.08);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    font-size: 13px;
+    color: #ff8a80;
+    display: none;
+    margin-bottom: 1rem;
+  }
+  .error-box.visible { display: block; }
+
+  /* Info box */
+  .info-box {
+    background: rgba(46,204,113,0.05);
+    border: 1px solid rgba(46,204,113,0.15);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+  .info-box strong { color: var(--green); }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 1.25rem 0;
+  }
+
+  @media (max-width: 500px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .currency-btn { padding: 7px 10px; font-size: 12px; }
+    .result-value { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img class="logo-mark" src="data:image/png;base64,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" alt="Logo The Trading Floor">
+  <p class="logo-text">The Trading <em>Floor</em></p>
+  <p class="logo-est">EST. 2023</p>
+  <p class="app-title">Calculateur de Taille de Position — FTMO</p>
+</div>
+
+<div class="container">
+
+  <div class="info-box">
+    <strong>Comment ça fonctionne</strong><br>
+    Entrez votre devise, le symbole tradé, votre perte maximale acceptée, votre prix d'entrée et votre stop loss. Le calculateur détermine combien de <strong>lots</strong> (contrats) vous pouvez trader sans dépasser votre risque.
+  </div>
+
+  <!-- Devise -->
+  <div class="card">
+    <p class="card-title">Devise du compte</p>
+    <div class="currency-grid">
+      <button class="currency-btn active" data-currency="USD">USD</button>
+      <button class="currency-btn" data-currency="CAD">CAD</button>
+      <button class="currency-btn" data-currency="EUR">EUR</button>
+      <button class="currency-btn" data-currency="GBP">GBP</button>
+      <button class="currency-btn" data-currency="AUD">AUD</button>
+      <button class="currency-btn" data-currency="CHF">CHF</button>
+    </div>
+  </div>
+
+  <!-- Paramètres -->
+  <div class="card">
+    <p class="card-title">Paramètres de la position</p>
+
+    <!-- Symbole -->
+    <div class="field">
+      <label>
+        Symbole / Instrument
+        <span class="tooltip-icon" title="L'action ou future que vous tradez (ex: AAPL, ES, NQ, MES)">i</span>
+      </label>
+      <select id="symbol-select">
+        <optgroup label="— Actions —">
+          <option value="stock|1|AAPL">AAPL – Apple</option>
+          <option value="stock|1|AMD">AMD – Advanced Micro Devices</option>
+          <option value="stock|1|AMZN">AMZN – Amazon</option>
+          <option value="stock|1|ARM">ARM – Arm Holdings</option>
+          <option value="stock|1|ASML">ASML – ASML Holding</option>
+          <option value="stock|1|AVGO">AVGO – Broadcom</option>
+          <option value="stock|1|AZN">AZN – AstraZeneca</option>
+          <option value="stock|1|BA">BA – Boeing</option>
+          <option value="stock|1|BABA">BABA – Alibaba</option>
+          <option value="stock|1|BAC">BAC – Bank of America</option>
+          <option value="stock|1|BRK.B">BRK.B – Berkshire Hathaway B</option>
+          <option value="stock|1|CSCO">CSCO – Cisco</option>
+          <option value="stock|1|CVX">CVX – Chevron</option>
+          <option value="stock|1|DIS">DIS – Walt Disney</option>
+          <option value="stock|1|FDX">FDX – FedEx</option>
+          <option value="stock|1|GE">GE – GE Aerospace</option>
+          <option value="stock|1|GM">GM – General Motors</option>
+          <option value="stock|1|GME">GME – GameStop</option>
+          <option value="stock|1|GOOG">GOOG – Alphabet (Google)</option>
+          <option value="stock|1|IBM">IBM – IBM</option>
+          <option value="stock|1|INTC">INTC – Intel</option>
+          <option value="stock|1|JNJ">JNJ – Johnson & Johnson</option>
+          <option value="stock|1|JPM">JPM – JPMorgan Chase</option>
+          <option value="stock|1|KO">KO – Coca-Cola</option>
+          <option value="stock|1|LMT">LMT – Lockheed Martin</option>
+          <option value="stock|1|MCD">MCD – McDonald's</option>
+          <option value="stock|1|META">META – Meta</option>
+          <option value="stock|1|MSFT">MSFT – Microsoft</option>
+          <option value="stock|1|MSTR">MSTR – MicroStrategy</option>
+          <option value="stock|1|NFLX">NFLX – Netflix</option>
+          <option value="stock|1|NKE">NKE – Nike</option>
+          <option value="stock|1|NVDA">NVDA – Nvidia</option>
+          <option value="stock|1|PFE">PFE – Pfizer</option>
+          <option value="stock|1|PLTR">PLTR – Palantir</option>
+          <option value="stock|1|QCOM">QCOM – Qualcomm</option>
+          <option value="stock|1|RACE">RACE – Ferrari</option>
+          <option value="stock|1|RTX">RTX – RTX Corporation</option>
+          <option value="stock|1|SBUX">SBUX – Starbucks</option>
+          <option value="stock|1|SNOW">SNOW – Snowflake</option>
+          <option value="stock|1|SPCX">SPCX – SPDR S&P 500 ETF</option>
+          <option value="stock|1|T">T – AT&T</option>
+          <option value="stock|1|TSLA">TSLA – Tesla</option>
+          <option value="stock|1|V">V – Visa</option>
+          <option value="stock|1|WMT">WMT – Walmart</option>
+          <option value="stock|1|XOM">XOM – ExxonMobil</option>
+          <option value="stock|1|ZM">ZM – Zoom</option>
+        </optgroup>
+        <optgroup label="— Futures US (FTMO) —">
+          <option value="future|50|ES">ES – S&amp;P 500 Futures (50$/point)</option>
+          <option value="future|5|MES">MES – Micro S&amp;P 500 (5$/point)</option>
+          <option value="future|20|NQ">NQ – Nasdaq Futures (20$/point)</option>
+          <option value="future|2|MNQ">MNQ – Micro Nasdaq (2$/point)</option>
+          <option value="future|5|YM">YM – Dow Jones Futures (5$/point)</option>
+          <option value="future|0.5|MYM">MYM – Micro Dow Jones (0.5$/point)</option>
+          <option value="future|50|RTY">RTY – Russell 2000 (50$/point)</option>
+          <option value="future|5|M2K">M2K – Micro Russell 2000 (5$/point)</option>
+          <option value="custom|1|Personnalisé">✏️ Personnalisé</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- Champ personnalisé -->
+    <div class="field" id="custom-field" style="display:none;">
+      <label>Valeur par point / par action <span class="tooltip-icon" title="Ex: pour ES = 50, pour une action ordinaire = 1">i</span></label>
+      <div class="number-input-wrap">
+        <button class="arrow-btn" onclick="step('custom-multiplier', -1)">‹</button>
+        <input type="number" id="custom-multiplier" value="1" min="0.01" step="1">
+        <button class="arrow-btn" onclick="step('custom-multiplier', 1)">›</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field-grid">
+      <!-- Perte max -->
+      <div class="field">
+        <label>
+          Perte maximale
+          <span class="tooltip-icon" title="Le montant maximum que vous acceptez de perdre sur ce trade, dans votre devise">i</span>
+        </label>
+        <div class="number-input-wrap">
+          <button class="arrow-btn" onclick="step('max-loss', -10)">‹</button>
+          <input type="number" id="max-loss" value="100" min="1" step="10">
+          <button class="arrow-btn" onclick="step('max-loss', 10)">›</button>
+        </div>
+      </div>
+
+      <!-- Prix d'entrée -->
+      <div class="field">
+        <label>
+          Prix d'entrée
+          <span class="tooltip-icon" title="Le prix auquel vous entrez dans la position">i</span>
+        </label>
+        <div class="number-input-wrap">
+          <button class="arrow-btn" onclick="step('entry-price', -1)">‹</button>
+          <input type="number" id="entry-price" value="300" min="0.01" step="1">
+          <button class="arrow-btn" onclick="step('entry-price', 1)">›</button>
+        </div>
+      </div>
+
+      <!-- Stop loss -->
+      <div class="field">
+        <label>
+          Stop loss
+          <span class="tooltip-icon" title="Le prix auquel votre stop loss est placé">i</span>
+        </label>
+        <div class="number-input-wrap">
+          <button class="arrow-btn" onclick="step('stop-loss', -1)">‹</button>
+          <input type="number" id="stop-loss" value="290" min="0.01" step="1">
+          <button class="arrow-btn" onclick="step('stop-loss', 1)">›</button>
+        </div>
+      </div>
+
+      <!-- Taille du compte -->
+      <div class="field">
+        <label>
+          Taille du compte (optionnel)
+          <span class="tooltip-icon" title="Entrez la valeur de votre compte pour voir le % de risque">i</span>
+        </label>
+        <div class="number-input-wrap">
+          <button class="arrow-btn" onclick="step('account-size', -1000)">‹</button>
+          <input type="number" id="account-size" value="0" min="0" step="1000" placeholder="0">
+          <button class="arrow-btn" onclick="step('account-size', 1000)">›</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Calculer</button>
+  </div>
+
+  <!-- Erreur -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Résultat -->
+  <div class="result-card" id="result-card">
+    <p class="result-label">Taille de la position</p>
+    <div>
+      <span class="result-value" id="result-value">0</span>
+      <span class="result-unit" id="result-unit">lots</span>
+    </div>
+    <div class="result-detail" id="result-detail"></div>
+  </div>
+
+</div>
+
+<footer style="text-align:center; padding: 2rem 1rem 1.5rem; border-top: 1px solid #1a1a1a; margin-top: 1rem;">
+  <p style="font-size: 12px; color: #444; margin: 0; letter-spacing: 0.5px;">Créé par <span style="color: #555;">Groupe CMP</span></p>
+</footer>
+
+<script>
+/* ---- Devise sélectionnée ---- */
+let selectedCurrency = 'USD';
+
+document.querySelectorAll('.currency-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCurrency = btn.dataset.currency;
+  });
+});
+
+/* ---- Symbole : afficher champ personnalisé ---- */
+document.getElementById('symbol-select').addEventListener('change', function() {
+  const [type] = this.value.split('|');
+  document.getElementById('custom-field').style.display = type === 'custom' ? 'block' : 'none';
+});
+
+/* ---- Boutons fléchés ---- */
+function step(id, delta) {
+  const input = document.getElementById(id);
+  let val = parseFloat(input.value) || 0;
+  val = Math.max(parseFloat(input.min) || 0, val + delta);
+  input.value = parseFloat(val.toFixed(4));
+}
+
+/* ---- Calcul ---- */
+function calculate() {
+  const errorBox  = document.getElementById('error-box');
+  const resultCard = document.getElementById('result-card');
+
+  errorBox.classList.remove('visible');
+  resultCard.classList.remove('visible');
+
+  // Récupérer les valeurs
+  const symbolVal  = document.getElementById('symbol-select').value;
+  const [type, multiplierStr, symbolName] = symbolVal.split('|');
+  let multiplier = parseFloat(multiplierStr);
+
+  if (type === 'custom') {
+    multiplier = parseFloat(document.getElementById('custom-multiplier').value);
+  }
+
+  const maxLoss    = parseFloat(document.getElementById('max-loss').value);
+  const entryPrice = parseFloat(document.getElementById('entry-price').value);
+  const stopLoss   = parseFloat(document.getElementById('stop-loss').value);
+  const accountSize = parseFloat(document.getElementById('account-size').value) || 0;
+
+  // Validations
+  if (!maxLoss || maxLoss <= 0) {
+    return showError("La perte maximale doit être supérieure à 0.");
+  }
+  if (!entryPrice || entryPrice <= 0) {
+    return showError("Le prix d'entrée doit être supérieur à 0.");
+  }
+  if (!stopLoss || stopLoss <= 0) {
+    return showError("Le stop loss doit être supérieur à 0.");
+  }
+  if (entryPrice === stopLoss) {
+    return showError("Le prix d'entrée et le stop loss ne peuvent pas être identiques.");
+  }
+  if (!multiplier || multiplier <= 0) {
+    return showError("La valeur par point doit être supérieure à 0.");
+  }
+
+  const riskPerUnit = Math.abs(entryPrice - stopLoss) * multiplier;
+  const lots = maxLoss / riskPerUnit;
+  const direction = entryPrice > stopLoss ? 'Long (achat)' : 'Short (vente)';
+  const stopDistance = Math.abs(entryPrice - stopLoss);
+
+  // Affichage — toujours en lots
+  const lotsDisplay = lots.toFixed(2);
+  const unitLabel = 'Lot' + (parseFloat(lotsDisplay) > 1 ? 's' : '');
+
+  document.getElementById('result-value').textContent = lotsDisplay;
+  document.getElementById('result-unit').textContent  = unitLabel;
+
+  let detail = `
+    <span>Symbole:</span> ${symbolName} &nbsp;·&nbsp;
+    <span>Direction:</span> ${direction} &nbsp;·&nbsp;
+    <span>Distance du stop:</span> ${stopDistance.toFixed(2)} pts<br>
+    <span>Risque par unité:</span> ${riskPerUnit.toFixed(2)} ${selectedCurrency} &nbsp;·&nbsp;
+    <span>Risque total max:</span> ${maxLoss} ${selectedCurrency}
+  `;
+
+  if (accountSize > 0) {
+    const riskPct = ((maxLoss / accountSize) * 100).toFixed(2);
+    detail += `<br><span>Risque en % du compte:</span> <strong style="color:${riskPct > 2 ? 'var(--red)' : 'var(--green)'}">${riskPct}%</strong>`;
+    if (riskPct > 2) {
+      detail += ` <span style="color:var(--red)">(⚠️ dépasse le seuil recommandé de 2%)</span>`;
+    }
+  }
+
+  document.getElementById('result-detail').innerHTML = detail;
+  resultCard.classList.add('visible');
+}
+
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = '❌ ' + msg;
+  box.classList.add('visible');
+}
+
+// Calculer au chargement
+calculate();
+</script>
+
+</body>
+</html>
